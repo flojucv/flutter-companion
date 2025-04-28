@@ -1,0 +1,18 @@
+{
+  "name": "flutter-utils",
+  "version": "1.0.0",
+  "description": "a flutter compagnion for create page etc",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "flojucv",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "4.1.2",
+    "commander": "13.1.0"
+  },
+  "bin": {
+    "flutter-utils": "./index.js"
+  }
+}
