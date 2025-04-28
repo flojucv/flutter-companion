@@ -1,6 +1,6 @@
 # 🚀 flutter-utils
 
-![Version](https://img.shields.io/badge/version-1.0.0-orangegit add.svg)
+![Version](https://img.shields.io/badge/version-1.0.0-orange.svg)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E=18.0.0-green.svg)](https://nodejs.org/)
 [![Flutter](https://img.shields.io/badge/flutter-%3E=3.0.0-blue.svg)](https://flutter.dev/)
