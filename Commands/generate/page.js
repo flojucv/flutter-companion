@@ -1,30 +1,30 @@
 const { Command } = require("commander");
 const { toPascalCase, toTitleCase } = require("../../utils/helper");
-const chalk = require("chalk");
 const fs = require("fs");
 const path = require("path");
+const { error, success } = require("../../utils/log");
 
 module.exports = () => {
   const command = new Command('page');
   command
-    .description('Créer une page Flutter')
-    .argument('<pathArg>', 'le chemin de la page')
-    .option('-f, --force', 'forcer la création de la page')
+    .description('Create a new page with a default template for Flutter')
+    .argument('<pathArg>', 'Path and name of the page file')
+    .option('-f, --force', 'Force creation of the file')
     .action((pathArg) => {
-      // Déterminer le chemin du fichier
+      // Determine the file path
       let pageFile = pathArg.endsWith('.dart') ? pathArg : `${pathArg}.dart`;
       if (!pageFile.startsWith('lib/')) pageFile = `lib/${pageFile}`;
 
-      // Créer le dossier si besoin
+      // Create the directory if needed
       const dir = path.dirname(pageFile);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-      // Générer noms
+      // Generate names
       const fileName = path.basename(pageFile, '.dart');
       const className = toPascalCase(fileName);
       const titleName = toTitleCase(fileName);
 
-      // Lire le template externe depuis le dossier template
+      // Read the external template from the template folder
       const templatePath = path.join(__dirname, '../..', 'template', 'page.template.dart');
       let content = fs.readFileSync(templatePath, 'utf8');
       content = content
@@ -33,17 +33,14 @@ module.exports = () => {
 
       const forceMode = command.opts().force;
 
-      // Vérifier si le fichier existe déjà
+      // Check if the file already exists
       if (fs.existsSync(pageFile) && !forceMode) {
-        console.error(chalk.red('[Erreur] Le fichier existe déjà.'));
-        console.error(chalk.yellow('Utiliser l\'option -f ou --force pour forcer la création.'));
-        console.error(chalk.yellow('Ou supprimer le fichier existant.'));
-        process.exit(1);
+        error(["File already exists.","Use the -f or --force option to force creation.", "Or delete the existing file."]);
       }
 
-      // Écrire le fichier
+      // Write the file
       fs.writeFileSync(pageFile, content);
-      console.log(chalk.green(`Page crée : ${pageFile}`));
+      success([`Page created: ${pageFile}`,"Don't forget to add the route using the `flutter-companion generate route` command"]);
     });
   return command;
 };

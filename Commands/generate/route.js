@@ -1,52 +1,54 @@
 const { Command } = require("commander");
-const chalk = require("chalk");
 const fs = require("fs");
 const path = require("path");
+const { error, success } = require("../../utils/log");
 
 module.exports = () => {
     const command = new Command('route');
     command
-        .description('Créer une route Flutter')
-        .argument('<routeName>', 'le nom de la route')
-        .argument('<componentName>', 'le nom du composant')
-        .option('-f, --force', 'forcer la création de la page')
+        .description('Create a Flutter route')
+        .argument('<routeName>', 'The name of the route')
+        .argument('<componentName>', 'The name of the component')
+        .option('-f, --force', 'Force the creation of the page')
         .action((routeName, componentName) => {
             const routerFile = 'lib/router.dart';
             const componentFile = `lib/${componentName}.dart`;
 
             const forceMode = command.opts().force;
 
-            // 1. Vérifier si le module de route est implémenté
+            // 1. Check if the router module is implemented
             if (!fs.existsSync(routerFile) && !forceMode) {
-                console.error(chalk.red('[Erreur] Le module de route (lib/router.dart) n\'est pas implémenté.'));
-                console.error(chalk.yellow('Utiliser la commande `flutter-utils implements router` pour l\'implémenter.'));
-                console.error(chalk.yellow('Ou utiliser l\'option -f ou --force pour forcer la création.'));
-                process.exit(1);
+                error([
+                    "The router module (lib/router.dart) is not implemented.",
+                    "Use the command `flutter-companion implements router` to implement it.",
+                    "Or use the -f or --force option to force creation."
+                ]);
             }
 
-            // 2. Vérifier si le composant existe
+            // 2. Check if the component exists
             if (!fs.existsSync(componentFile) && !forceMode) {
-                console.error(chalk.red(`[Erreur] Le composant ${componentName} n'existe pas dans lib/.`));
-                console.error(chalk.yellow('Utiliser la commande `flutter-utils generate page` pour le créer.'));
-                console.error(chalk.yellow('Ou utiliser l\'option -f ou --force pour forcer la création.'));
-                process.exit(1);
+                error([
+                    `The component ${componentName} does not exist in lib/.`,
+                    "Use the command `flutter-companion generate page` to create it.",
+                    "Or use the -f or --force option to force creation."
+                ]);
             }
 
-            // 3. Lire le contenu du router
+            // 3. Read the router content
             let routerContent = fs.readFileSync(routerFile, 'utf8');
 
-            // 4. Ajouter l'import si non présent (import relatif sans 'lib/')
+            // 4. Add the import if not present (relative import without 'lib/')
             const importLine = `import '${componentName}.dart';`;
             if (!routerContent.includes(importLine)) {
                 routerContent = routerContent.replace(/(import .+;\n)+/, match => match + importLine + '\n');
             }
 
-            // 5. Ajouter la route GoRoute
-            // Extraire le nom du fichier sans dossier ni extension
+            // 5. Add the GoRoute
+            // Extract the file name without folder or extension
             const fileBaseName = path.basename(componentName, '.dart');
-            // Mettre la première lettre en majuscule
+            // Capitalize the first letter
             const fileNameWithUpper = fileBaseName.charAt(0).toUpperCase() + fileBaseName.slice(1);
-            // Ajouter .dart si besoin
+            // Add .dart if needed
             const builderContent = `${fileNameWithUpper}()`;
 
             if (routeName.startsWith('/'))
@@ -57,7 +59,7 @@ module.exports = () => {
       builder: (context, state) => const ${builderContent},
     ),`;
 
-            // Insérer avant la fermeture du tableau de routes
+            // Insert before the closing of the routes array
             routerContent = routerContent.replace(
                 /(routes:\s*<RouteBase>\s*\[)([\s\S]*?)(\])/m,
                 (match, p1, p2, p3) => {
@@ -69,9 +71,9 @@ module.exports = () => {
                 }
             );
 
-            // 6. Écrire le fichier modifié
+            // 6. Write the modified file
             fs.writeFileSync(routerFile, routerContent);
-            console.log(chalk.green('Route ajoutée avec succès !'));
+            success('Route successfully added!');
         });
     return command;
 };

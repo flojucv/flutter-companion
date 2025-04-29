@@ -3,8 +3,17 @@
 const { Command } = require('commander');
 const fs = require('fs');
 const path = require('path');
+const { error } = require('./utils/log');
 
 const program = new Command();
+
+program.hook('preAction', (thisCommand) => {
+    const pubspec = path.join(process.cwd(), "pubspec.yaml");
+    const libDir = path.join(process.cwd(), "lib");
+    if (!fs.existsSync(pubspec) || !fs.existsSync(libDir)) {
+        error(`Ce n'est pas un projet Flutter valide. Assurez-vous d'être dans le bon répertoire.`);
+    }
+});
 
 const commandsDir = path.join(__dirname, 'commands');
 fs.readdirSync(commandsDir).forEach((mainCmd) => {
