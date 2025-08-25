@@ -1,6 +1,6 @@
 const { Command } = require("commander");
 const { error, info } = require("../../utils/log");
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const chokidar = require('chokidar');
 
 module.exports = () => {
@@ -9,23 +9,33 @@ module.exports = () => {
     command
         .description('Command for Flutter development with hot reload')
         .action(() => {
-            info('Starting Flutter development with hot reload...')
+            info('Starting Flutter development with hot reload...');
 
-            // Lancer flutter run avec pipe pour stdin
-            const flutterProcess = spawn('flutter', ['run'], {
+            let launchArgs = ['run'];
+            try {
+                const devices = execSync('flutter devices --machine', { encoding: 'utf8' });
+                const parsed = JSON.parse(devices);
+                if (!parsed || parsed.length === 0) {
+                    info('No device detected, launching in web mode...');
+                    launchArgs = ['run', '-d', 'chrome'];
+                }
+            } catch (err) {
+                info('Could not detect devices, launching in web mode...');
+                launchArgs = ['run', '-d', 'chrome'];
+            }
+
+            const flutterProcess = spawn('flutter', launchArgs, {
                 stdio: ['pipe', 'inherit', 'inherit'],
                 shell: true
             });
 
-            // Observer les changements dans le répertoire lib
             const watcher = chokidar.watch('./lib', {
-                ignored: /(^|[\/\\])\../,  // ignorer les fichiers cachés
+                ignored: /(^|[\/\\])\../,
                 persistent: true
             });
 
-            info('Watching for changes in lib directory...')
+            info('Watching for changes in lib directory...');
 
-            // Lorsqu'un fichier change, envoyer 'r' au processus flutter pour hot reload
             watcher.on('change', filePath => {
                 info(`File ${filePath} has been changed, triggering hot reload...`);
                 try {
@@ -35,21 +45,18 @@ module.exports = () => {
                 }
             });
 
-            // Gérer la sortie du processus
             flutterProcess.on('exit', (code) => {
                 info(`Flutter process exited with code ${code}`);
                 watcher.close();
                 process.exit(code);
             });
 
-            // Gérer les erreurs du processus
             flutterProcess.on('error', (err) => {
                 error(`Flutter process error: ${err.message}`);
                 watcher.close();
                 process.exit(1);
             });
 
-            // Gérer Ctrl+C pour fermer les deux processus proprement
             process.on('SIGINT', () => {
                 info('Stopping Flutter development...');
                 flutterProcess.kill('SIGINT');
