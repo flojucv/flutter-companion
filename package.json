@@ -1,6 +1,6 @@
 {
   "name": "flutter-companion",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "A Flutter companion CLI for increasing productivity: generate pages, routes, and implement GoRouter easily.",
   "keywords": [
     "flutter",
