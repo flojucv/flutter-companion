@@ -15,8 +15,14 @@ module.exports = () => {
             try {
                 const devices = execSync('flutter devices --machine', { encoding: 'utf8' });
                 const parsed = JSON.parse(devices);
-                if (!parsed || parsed.length === 0) {
-                    info('No device detected, launching in web mode...');
+
+                // Vérifie s'il y a au moins un device mobile (android ou ios)
+                const hasMobile = parsed.some(device =>
+                    device.platformType === 'ios' || device.platformType === 'android'
+                );
+
+                if (!hasMobile) {
+                    info('No mobile device detected, launching in web mode...');
                     launchArgs = ['run', '-d', 'chrome'];
                 }
             } catch (err) {
