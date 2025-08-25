@@ -15,6 +15,13 @@ program.hook('preAction', (thisCommand) => {
     }
 });
 
+const pkgPath = path.join(__dirname, "package.json");
+if (fs.existsSync(pkgPath)) {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+    program
+        .version(pkg.version, '-v, --version', 'Show flutter-companion version');
+}
+
 const commandsDir = path.join(__dirname, 'commands');
 fs.readdirSync(commandsDir).forEach((mainCmd) => {
     const mainCmdPath = path.join(commandsDir, mainCmd);
